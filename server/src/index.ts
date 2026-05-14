@@ -40,7 +40,16 @@ export default {
 			};
 		});
 
-		// create deck
+		await env.FLASHCARDS_KV.put('hello', 'world');
+
+		// create deck, 예: 나는 일본어를 배우고 싶으니까, 20개 단어를 줘
+		// list decks
+		// open deck
+		// mark deck(private)
+		// reset deck(private)
+		// delete deck(private)
+		// Wokers KV 사용
+
 
 		// @ts-ignore
 		const handler = createMcpHandler(server);
