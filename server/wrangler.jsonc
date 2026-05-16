@@ -22,6 +22,8 @@
 		{
 			"binding": "FLASHCARDS_KV",
 			"id": "de5dd1aa5eca43f0b7eb6e756c96e265",
+			// remote: true → wrangler dev(로컬 개발) 중에도 로컬 KV 에뮬레이터 대신
+			// 실제 Cloudflare KV(원격)에 읽고 씀. 로컬 임시 저장 없이 실제 데이터 확인 가능.
 			"remote": true
 		}
 	]
