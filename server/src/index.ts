@@ -3,16 +3,16 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { createMcpHandler } from 'agents/mcp';
 import z from 'zod';
 
-const WIDGET_URI = 'ui://movies-widget';
+const WIDGET_URI = 'ui://flashcards-widget';
 
 export default {
 	async fetch(request, env, ctx): Promise<Response> {
 		const server = new McpServer({
-			name: 'Movies Server',
+			name: 'Flashcard Server',
 			version: '1.0',
 		});
 
-		registerAppResource(server, 'Movies Widget', WIDGET_URI, { description: 'Movies Widget' }, async () => {
+		registerAppResource(server, 'Flashcard Widget', WIDGET_URI, { description: 'Flashcard Widget' }, async () => {
 			const html = await env.ASSETS.fetch(new URL('http://hello/index.html'));
 			return {
 				contents: [
@@ -38,7 +38,7 @@ export default {
 			};
 		});
 
-		// TODO 5.1: registerAppTool — get-upcoming-movies, get-now-playing-movies, …
+		// TODO: registerAppTool — flashcard 도구들
 
 		// @ts-ignore
 		const handler = createMcpHandler(server);

@@ -6,7 +6,7 @@ function App() {
   const [toolOutput, setToolOutput] = useState<object | null>(null);
 
   const { app } = useApp({
-    appInfo: { name: "Movies Client", version: "1.0" },
+    appInfo: { name: "Flashcards Client", version: "1.0" },
     capabilities: {},
     onAppCreated: (app) => {
       app.ontoolresult = (result) => {
