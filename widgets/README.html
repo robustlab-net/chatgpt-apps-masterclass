@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>widgets</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      line-height: 1.6;
+      max-width: 720px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      color: #222;
+    }
+    h1 { font-size: 1.75rem; }
+    h2 { font-size: 1.25rem; margin-top: 2rem; border-bottom: 1px solid #ddd; padding-bottom: 0.25rem; }
+    h3 { font-size: 1.05rem; margin-top: 1.25rem; }
+    pre {
+      background: #f5f5f5;
+      padding: 1rem;
+      overflow-x: auto;
+      border-radius: 4px;
+    }
+    code {
+      font-family: ui-monospace, monospace;
+      font-size: 0.9em;
+    }
+    pre code { font-size: 0.85em; }
+    a { color: #0969da; }
+    ul { padding-left: 1.25rem; }
+  </style>
+</head>
+<body>
+
+  <h1>widgets</h1>
+  <p>ChatGPT Apps 마스터클래스 — MCP ext-apps React 위젯</p>
+
+  <h2>프로젝트 설정</h2>
+  <pre><code>npm create vite@latest
+# name: widgets
+
+npm add @ladle/react
+npm i @modelcontextprotocol/ext-apps
+npm install tailwindcss @tailwindcss/vite
+npm install @openai/apps-sdk-ui</code></pre>
+
+  <p>스크립트:</p>
+  <ul>
+    <li><code>npm run dev</code> — 개발 서버</li>
+    <li><code>npm run build</code> — 빌드 (<code>../server/dist</code>)</li>
+    <li><code>npm run preview</code> — 빌드 미리보기</li>
+    <li><code>npm run ladle</code> — Ladle</li>
+  </ul>
+
+  <h2>4.3 Deployment Pipeline — public/_headers</h2>
+  <p>
+    강의 4.3에서 ChatGPT가 위젯을 iframe으로 띄울 때,
+    Vite 빌드 결과인 <code>assets/</code> 폴더 안의 JS·CSS·이미지 등을 cross-origin으로 불러옵니다.
+    이때 CORS 헤더가 없으면 리소스 로딩이 실패할 수 있어,
+    Cloudflare <code>_headers</code>로 <code>/assets/*</code> 경로에 헤더를 붙입니다.
+  </p>
+
+  <pre><code>/assets/*
+    Access-Control-Allow-Origin: *</code></pre>
+
+  <p>
+    <code>public/_headers</code>는 배포 시 그대로 복사되며,
+    위 패턴에 맞는 모든 asset 응답에 <code>Access-Control-Allow-Origin: *</code>가 적용됩니다.
+    공개 정적 파일용 설정이며, 인증이 필요한 API에는 쓰지 않습니다.
+  </p>
+
+  <h2>4.4 Ladle — 컴포넌트 단독 개발</h2>
+  <p>
+    ChatGPT에 연결하지 않고 UI만 빠르게 보려면 <a href="https://ladle.dev/">Ladle</a>을 씁니다.
+    Storybook과 비슷하지만 가볍고, <code>*.stories.tsx</code> 파일만으로 스토리를 만듭니다.
+  </p>
+
+  <h3>설치</h3>
+  <pre><code>npm add @ladle/react</code></pre>
+  <p><code>package.json</code>에 스크립트 추가:</p>
+  <pre><code>"ladle": "ladle serve"</code></pre>
+  <p>실행: <code>npm run ladle</code> → 브라우저에서 스토리 목록 확인</p>
+
+  <h3>Button.tsx — 컴포넌트와 props</h3>
+  <p>
+    버튼 UI와 받을 데이터 형태를 <code>Button.tsx</code>에 정의합니다.
+    props 타입을 두면 Story에서도 같은 타입으로 맞출 수 있습니다.
+  </p>
+  <pre><code>// src/Button.tsx
+export interface ButtonProps {
+  label: string;
+}
+
+export function Button({ label }: ButtonProps) {
+  return (
+    &lt;button type="button" className="rounded-lg bg-black text-white px-4 py-2"&gt;
+      {label}
+    &lt;/button&gt;
+  );
+}</code></pre>
+
+  <h3>Button.stories.tsx — Story와 args</h3>
+  <p>
+    <code>Story&lt;{}&gt;</code>(또는 <code>Story&lt;ButtonProps&gt;</code>)로 스토리를 선언하고,
+    <code>ButtonStory.args = { ... }</code>에 넣은 값이 props로 전달됩니다.
+    Ladle UI에서 args를 바꿔가며 상호작용할 수 있습니다.
+  </p>
+  <pre><code>// src/Button.stories.tsx
+import type { Story } from "@ladle/react";
+import { Button, type ButtonProps } from "./Button";
+
+export const ButtonStory: Story&lt;ButtonProps&gt; = (props) =&gt; &lt;Button {...props} /&gt;;
+
+ButtonStory.args = {
+  label: "다음 카드",
+};</code></pre>
+
+  <h3>데이터는 어디서 오나</h3>
+  <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 100%; font-size: 0.95rem;">
+    <tr>
+      <th>환경</th>
+      <th>데이터 경로</th>
+    </tr>
+    <tr>
+      <td>ChatGPT 위젯 (<code>App.tsx</code>)</td>
+      <td>
+        <code>app.ontoolresult</code> → <code>structuredContent</code> → state → 컴포넌트 props
+      </td>
+    </tr>
+    <tr>
+      <td>Ladle (<code>*.stories.tsx</code>)</td>
+      <td>
+        <code>ButtonStory.args = { ... }</code> → Story가 props로 전달
+      </td>
+    </tr>
+  </table>
+  <p>
+    실서비스에서는 MCP 도구 결과가 <code>ontoolresult</code>로 들어오지만,
+    Ladle에서는 ChatGPT 없이 <strong>Story args로 같은 props를 흉내</strong> 냅니다.
+    컴포넌트는 <code>Button</code>처럼 props만 받도록 두면 두 환경 모두에서 재사용하기 쉽습니다.
+  </p>
+  <pre><code>// App.tsx (실제 위젯) — 요약
+app.ontoolresult = (result) =&gt; {
+  if (result.structuredContent) {
+    setToolOutput(result.structuredContent);
+  }
+};
+// toolOutput을 Button 등에 props로 넘김
+
+// Button.stories.tsx (로컬) — 요약
+ButtonStory.args = { label: "테스트" };</code></pre>
+
+  <h2>4.5 Tailwind + Apps SDK UI</h2>
+  <p>
+    <a href="https://tailwindcss.com/">Tailwind 4</a>로 스타일을 잡고,
+    <a href="https://github.com/openai/apps-sdk-ui"><code>@openai/apps-sdk-ui</code></a>로 ChatGPT에 맞는 UI 컴포넌트를 씁니다.
+    강의 순서는 아래와 같습니다.
+  </p>
+
+  <ol>
+    <li>Tailwind 패키지 설치</li>
+    <li><code>vite.config.ts</code>에서 <code>tailwindcss</code> import 후 plugins에 등록</li>
+    <li>npm으로 <code>@openai/apps-sdk-ui</code> 설치</li>
+    <li><code>App.css</code> → <code>index.css</code>로 옮긴 뒤 <code>App.css</code> 삭제</li>
+  </ol>
+
+  <h3>1) Tailwind 설치</h3>
+  <pre><code>npm install tailwindcss @tailwindcss/vite</code></pre>
+
+  <h3>2) <code>vite.config.ts</code> — tailwindcss import</h3>
+  <p>프로젝트 루트의 <code>vite.config.ts</code>를 열고, 상단에 import한 뒤 <code>plugins</code> 배열에 넣습니다.</p>
+  <pre><code>import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
+
+export default defineConfig(({ mode }) =&gt; ({
+  plugins: [react(), tailwindcss()],
+  // base, build 등 기존 설정 유지
+}));</code></pre>
+  <p>이 프로젝트 실제 파일 예:</p>
+  <pre><code>import tailwindcss from "@tailwindcss/vite";
+// ...
+plugins: [react(), tailwindcss()],</code></pre>
+
+  <h3>3) Apps SDK UI 설치 (npm)</h3>
+  <pre><code>npm install @openai/apps-sdk-ui</code></pre>
+  <p>Tailwind 4가 먼저 붙어 있어야 SDK UI 스타일이 정상 동작합니다.</p>
+
+  <h3>4) 전역 CSS — <code>App.css</code> → <code>index.css</code></h3>
+  <p>
+    Vite 템플릿은 기본으로 <code>src/App.css</code>를 <code>App.tsx</code>에서 import 합니다.
+    Tailwind·Apps SDK UI는 <strong>앱 전체에 한 번</strong> 넣는 전역 CSS가 맞으므로, 강의에서는 이렇게 정리합니다.
+  </p>
+  <ol>
+    <li><code>App.css</code> 내용을 복사해 <code>index.css</code>에 붙여 넣거나, <code>index.css</code>를 아래 내용으로 <strong>덮어씀</strong></li>
+    <li><code>src/App.css</code> 파일 <strong>삭제</strong></li>
+    <li><code>App.tsx</code>에 있던 <code>import "./App.css"</code> 제거 (있을 경우)</li>
+    <li><code>main.tsx</code>는 <code>import "./index.css"</code> 유지 — 컴포넌트 렌더 전에 로드</li>
+  </ol>
+  <p>최종 <code>index.css</code> 예 (Tailwind + SDK UI):</p>
+  <pre><code>@import "tailwindcss";
+@import "@openai/apps-sdk-ui/css";
+/* Required for Tailwind to find class references in Apps SDK UI components. */
+@source "../node_modules/@openai/apps-sdk-ui";
+
+/* The rest of your application CSS */</code></pre>
+  <p>
+    이 프로젝트에는 <code>App.css</code>가 없고 <code>index.css</code>만 있습니다.
+    Ladle(<code>App.stories.tsx</code>)에서도 <code>import "./index.css"</code>로 같은 전역 스타일을 불러옵니다.
+  </p>
+
+  <h3>컴포넌트 import</h3>
+  <p>경로별로 가져옵니다. 예:</p>
+  <pre><code>import { LoadingIndicator } from "@openai/apps-sdk-ui/components/Indicator";
+import { Button } from "@openai/apps-sdk-ui/components/Button";
+import { Badge } from "@openai/apps-sdk-ui/components/Badge";</code></pre>
+
+  <h3>현재 <code>App.tsx</code> 예시</h3>
+  <pre><code>import { useApp, useHostStyles } from "@modelcontextprotocol/ext-apps/react";
+import { LoadingIndicator } from "@openai/apps-sdk-ui/components/Indicator";
+
+function App() {
+  const { app } = useApp({ /* ... */ });
+  useHostStyles(app, app?.getHostContext());
+
+  return (
+    &lt;div className="flex min-h-50 items-center justify-center"&gt;
+      &lt;LoadingIndicator size={32} /&gt;
+    &lt;/div&gt;
+  );
+}</code></pre>
+  <p>
+    <code>useHostStyles</code>는 ChatGPT 호스트의 테마·색상 정보를 위젯에 맞춥니다.
+    Apps SDK UI 토큰(<code>bg-surface</code>, <code>text-secondary</code> 등)이 호스트와 어울리게 쓰일 때 함께 사용합니다.
+  </p>
+
+  <h3>Ladle에서 확인</h3>
+  <p>
+    <code>App.stories.tsx</code>에 <code>import "./index.css"</code>가 있어야 SDK UI 스타일이 Ladle에도 적용됩니다.
+    <code>npm run ladle</code>으로 <code>LoadingIndicator</code> 등을 ChatGPT 없이 미리 볼 수 있습니다.
+  </p>
+
+  <h3>선택: AppsSDKUIProvider</h3>
+  <p>
+    <code>TextLink</code>, <code>ButtonLink</code> 등에 라우터 링크를 쓸 때만
+    <code>AppsSDKUIProvider</code>로 감쌉니다. 단순 위젯만 만들면 생략 가능합니다.
+  </p>
+  <p>
+    문서·컴포넌트 목록:
+    <a href="https://openai.github.io/apps-sdk-ui/">openai.github.io/apps-sdk-ui</a>
+  </p>
+
+  <h2>React + TypeScript + Vite</h2>
+  <p>
+    React를 Vite와 HMR로 쓰기 위한 최소 템플릿입니다.
+  </p>
+  <p>공식 플러그인:</p>
+  <ul>
+    <li><a href="https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react">@vitejs/plugin-react</a> — Oxc</li>
+    <li><a href="https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc">@vitejs/plugin-react-swc</a> — SWC</li>
+  </ul>
+  <p>
+    프로덕션 <code>base</code>는 <code>vite.config.ts</code>의 Workers URL을 사용하고,
+    빌드 출력은 <code>../server/dist</code>입니다.
+  </p>
+
+  <h2>React Compiler</h2>
+  <p>
+    성능 이유로 기본 비활성화입니다.
+    <a href="https://react.dev/learn/react-compiler/installation">설치 문서</a> 참고.
+  </p>
+
+  <h2>ESLint 설정 확장</h2>
+  <p>프로덕션 앱이라면 type-aware 린트를 권장합니다.</p>
+
+  <h3>타입 체크 설정 예시</h3>
+  <pre><code>export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+
+      // Remove tseslint.configs.recommended and replace with this
+      tseslint.configs.recommendedTypeChecked,
+      // Alternatively, use this for stricter rules
+      tseslint.configs.strictTypeChecked,
+      // Optionally, add this for stylistic rules
+      tseslint.configs.stylisticTypeChecked,
+
+      // Other configs...
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])</code></pre>
+
+  <h3>React ESLint 플러그인 예시</h3>
+  <p>
+    <a href="https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x">eslint-plugin-react-x</a>,
+    <a href="https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom">eslint-plugin-react-dom</a>
+  </p>
+  <pre><code>// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
+
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+      reactX.configs['recommended-typescript'],
+      reactDom.configs.recommended,
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])</code></pre>
+
+</body>
+</html>

@@ -14,6 +14,9 @@
 	"compatibility_flags": [
 		"nodejs_compat"
 	],
+	// bindings(assets, kv 등)에 새 변수가 추가되면 TypeScript는 타입에 반영된 걸 모릅니다.
+	// wrangler dev를 종료한 뒤 `npm run cf-typegen`(wrangler types)을 실행하세요.
+	// 그러면 TypeScript도 assets 바인딩을 인식하고 `env.ASSETS`로 접근할 수 있습니다.
 	"assets": {
 		"directory": "dist",
 		"binding": "ASSETS"

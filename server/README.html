@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>server — ChatGPT Apps Masterclass</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #171b26;
+      --surface-2: #1e2433;
+      --border: #2a3144;
+      --text: #e8eaef;
+      --muted: #9aa3b5;
+      --accent: #f6821f;
+      --accent-dim: #f6821f33;
+      --code-bg: #0c0e14;
+      --success: #3dd68c;
+      --radius: 10px;
+      --font: "Pretendard", "Apple SD Gothic Neo", system-ui, sans-serif;
+      --mono: "JetBrains Mono", "SF Mono", ui-monospace, monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      min-height: 100vh;
+    }
+
+    nav {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 1.5rem 1rem;
+      border-right: 1px solid var(--border);
+      background: var(--surface);
+      overflow-y: auto;
+    }
+
+    nav h2 {
+      margin: 0 0 1rem;
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    nav a {
+      display: block;
+      padding: 0.45rem 0.65rem;
+      margin-bottom: 0.15rem;
+      border-radius: 6px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    nav a:hover,
+    nav a.active {
+      background: var(--accent-dim);
+      color: var(--accent);
+    }
+
+    main {
+      max-width: 52rem;
+      padding: 2.5rem 2.5rem 4rem;
+    }
+
+    header.hero {
+      margin-bottom: 2.5rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    header.hero h1 {
+      margin: 0 0 0.5rem;
+      font-size: 2rem;
+      font-weight: 700;
+    }
+
+    header.hero p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 1.05rem;
+    }
+
+    section {
+      margin-bottom: 3rem;
+      scroll-margin-top: 1.5rem;
+    }
+
+    section h2 {
+      margin: 0 0 1rem;
+      font-size: 1.35rem;
+      color: var(--text);
+    }
+
+    section h2 span.num {
+      color: var(--accent);
+      font-weight: 600;
+      margin-right: 0.35rem;
+    }
+
+    p, li { color: var(--text); }
+    .muted { color: var(--muted); }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.35rem;
+      margin: 1rem 0;
+    }
+
+    .card.warn {
+      border-color: #f6821f55;
+      background: linear-gradient(135deg, var(--surface) 0%, #1a1510 100%);
+    }
+
+    .pipeline {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 1.25rem 0;
+    }
+
+    .pipeline .step {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.75rem 1rem;
+      font-size: 0.9rem;
+      flex: 1 1 140px;
+      min-width: 120px;
+    }
+
+    .pipeline .step strong {
+      display: block;
+      color: var(--accent);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.25rem;
+    }
+
+    .pipeline .arrow {
+      color: var(--muted);
+      font-size: 1.25rem;
+      flex: 0 0 auto;
+    }
+
+    details {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin: 0.75rem 0;
+    }
+
+    details summary {
+      padding: 0.85rem 1.1rem;
+      cursor: pointer;
+      font-weight: 600;
+      list-style: none;
+    }
+
+    details summary::-webkit-details-marker { display: none; }
+
+    details summary::before {
+      content: "▸ ";
+      color: var(--accent);
+    }
+
+    details[open] summary::before { content: "▾ "; }
+
+    details .inner {
+      padding: 0 1.1rem 1rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .code-wrap {
+      position: relative;
+      margin: 0.75rem 0;
+    }
+
+    pre {
+      margin: 0;
+      padding: 1rem 3rem 1rem 1rem;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow-x: auto;
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      line-height: 1.55;
+    }
+
+    code {
+      font-family: var(--mono);
+      font-size: 0.88em;
+      background: var(--code-bg);
+      padding: 0.15em 0.4em;
+      border-radius: 4px;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      padding: 0.35rem 0.65rem;
+      font-size: 0.75rem;
+      font-family: var(--font);
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    .copy-btn:hover { color: var(--text); border-color: var(--accent); }
+
+    .copy-btn.copied {
+      color: var(--success);
+      border-color: var(--success);
+    }
+
+    ul { padding-left: 1.25rem; }
+    li { margin: 0.35rem 0; }
+
+    a.ext { color: var(--accent); }
+
+    @media (max-width: 768px) {
+      .layout { grid-template-columns: 1fr; }
+      nav {
+        position: relative;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+      main { padding: 1.5rem 1.25rem 3rem; }
+      .pipeline .arrow { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <nav aria-label="목차">
+      <h2>목차</h2>
+      <a href="#setup">프로젝트 생성</a>
+      <a href="#deps">의존성 설치</a>
+      <a href="#bindings">Bindings &amp; cf-typegen</a>
+      <a href="#deploy">4.3 Deployment Pipeline</a>
+      <a href="#inspector">MCP Inspector</a>
+      <a href="#secrets">Secrets</a>
+    </nav>
+
+    <main>
+      <header class="hero">
+        <h1>server</h1>
+        <p>Cloudflare Workers MCP 서버 — ChatGPT Apps Masterclass</p>
+      </header>
+
+      <section id="setup">
+        <h2>프로젝트 생성</h2>
+        <p class="muted">Workers 프로젝트를 처음 만들 때 사용합니다.</p>
+        <div class="code-wrap">
+          <pre><code id="cmd-create">npm create cloudflare@latest
+# name: server</code></pre>
+          <button type="button" class="copy-btn" data-copy="cmd-create">복사</button>
+        </div>
+      </section>
+
+      <section id="deps">
+        <h2>의존성 설치</h2>
+        <div class="code-wrap">
+          <pre><code id="cmd-install">npm i @modelcontextprotocol/sdk zod agents @modelcontextprotocol/ext-apps</code></pre>
+          <button type="button" class="copy-btn" data-copy="cmd-install">복사</button>
+        </div>
+      </section>
+
+      <section id="bindings">
+        <h2>Bindings &amp; <code>cf-typegen</code></h2>
+        <div class="card warn">
+          <p><strong>wrangler.jsonc</strong>에 bindings(assets, KV 등)를 새로 추가하면 TypeScript는 타입에 반영된 것을 자동으로 알지 못합니다.</p>
+          <ol>
+            <li><code>wrangler dev</code>를 <strong>종료</strong></li>
+            <li><code>npm run cf-typegen</code> 실행 (<code>wrangler types</code>)</li>
+          </ol>
+          <p>그러면 TypeScript도 바인딩을 인식합니다. 예: assets → <code>env.ASSETS</code></p>
+        </div>
+
+        <details>
+          <summary>환경 변수 (.dev.vars)</summary>
+          <div class="inner">
+            <p><code>.dev.vars</code>에 변수를 추가한 뒤에도 <code>npm run cf-typegen</code>을 실행하면 <code>env</code> 타입에서 확인할 수 있습니다.</p>
+          </div>
+        </details>
+
+        <details>
+          <summary>KV <code>remote: true</code></summary>
+          <div class="inner">
+            <p><code>wrangler dev</code> 중에도 로컬 KV 에뮬레이터 대신 실제 Cloudflare KV(원격)에 읽고 씁니다. 로컬 임시 저장 없이 실제 데이터를 확인할 때 유용합니다.</p>
+          </div>
+        </details>
+      </section>
+
+      <section id="deploy">
+        <h2><span class="num">4.3</span> Deployment Pipeline</h2>
+        <p><strong>server</strong> 폴더에서 <code>npm run deploy</code>를 실행하면 npm lifecycle에 따라 아래 순서로 진행됩니다.</p>
+
+        <div class="pipeline" role="list" aria-label="배포 파이프라인">
+          <div class="step" role="listitem">
+            <strong>1. predeploy</strong>
+            <code>../widgets</code>로 이동 후 <code>npm run build</code>
+          </div>
+          <span class="arrow" aria-hidden="true">→</span>
+          <div class="step" role="listitem">
+            <strong>2. deploy</strong>
+            <code>wrangler deploy</code>
+          </div>
+        </div>
+
+        <p class="muted"><code>package.json</code>의 <code>predeploy</code>는 JSON이라 주석을 달 수 없어 이 문서에 정리합니다. widgets 빌드 결과는 <code>dist</code>에 모이고, Worker의 <code>ASSETS</code> 바인딩으로 서빙됩니다.</p>
+
+        <div class="code-wrap">
+          <pre><code id="cmd-deploy">cd server
+npm run deploy</code></pre>
+          <button type="button" class="copy-btn" data-copy="cmd-deploy">복사</button>
+        </div>
+      </section>
+
+      <section id="inspector">
+        <h2>MCP Inspector</h2>
+        <div class="code-wrap">
+          <pre><code id="cmd-inspector">npx @modelcontextprotocol/inspector</code></pre>
+          <button type="button" class="copy-btn" data-copy="cmd-inspector">복사</button>
+        </div>
+      </section>
+
+      <section id="secrets">
+        <h2>Secrets</h2>
+        <p>민감한 값은 <code>wrangler secret</code>으로 등록합니다.</p>
+        <div class="code-wrap">
+          <pre><code id="cmd-secret">npx wrangler@latest secret put API_KEY</code></pre>
+          <button type="button" class="copy-btn" data-copy="cmd-secret">복사</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    document.querySelectorAll(".copy-btn").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-copy");
+        const el = document.getElementById(id);
+        if (!el) return;
+        const text = el.innerText;
+        try {
+          await navigator.clipboard.writeText(text);
+          btn.textContent = "복사됨";
+          btn.classList.add("copied");
+          setTimeout(() => {
+            btn.textContent = "복사";
+            btn.classList.remove("copied");
+          }, 1600);
+        } catch {
+          btn.textContent = "실패";
+        }
+      });
+    });
+
+    const navLinks = [...document.querySelectorAll("nav a")];
+    const sections = navLinks.map((a) => document.querySelector(a.getAttribute("href")));
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          const id = "#" + entry.target.id;
+          navLinks.forEach((link) => {
+            link.classList.toggle("active", link.getAttribute("href") === id);
+          });
+        });
+      },
+      { rootMargin: "-30% 0px -60% 0px", threshold: 0 }
+    );
+    sections.forEach((s) => s && observer.observe(s));
+  </script>
+</body>
+</html>

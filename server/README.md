@@ -1,19 +1,7 @@
+# server
 
-
+문서는 **[README.html](./README.html)** 에 있습니다. 브라우저에서 열면 목차·복사 버튼·배포 파이프라인(4.3) 등을 확인할 수 있습니다.
 
 ```bash
-
-npm create cloudflare@latest
-name: server
-
-npm i @modelcontextprotocol/sdk zod agents @modelcontextprotocol/ext-apps
-
-.dev.vars에 추가후
-npm run cf-typegen
-그럼 env.변수를 확인할 수 있다.
-
-npx @modelcontextprotocol/inspector
-
-# secret api_key
-npx wrangler@latest secret put API_KEY
+open README.html   # macOS
 ```
