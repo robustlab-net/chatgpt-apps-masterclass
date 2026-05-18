@@ -5,6 +5,22 @@ import z from 'zod';
 
 const WIDGET_URI = 'ui://flashcards-widget';
 
+const cardSchema = z.object({
+	front: z.string().describe('The question or prompt'),
+	back: z.string().describe('The answer'),
+	hint: z.string().describe('A hint for the card'),
+	status: z.enum(['new', 'learning', 'mastered']).readonly().default('new'),
+});
+
+const deckSchema = z.object({
+	title: z.string().describe("The title of the deck. e.g 'React Fundamentals'"),
+	description: z.string().describe('Brief description of what this deck covers.'),
+	cards: z.array(cardSchema).min(10).max(20).describe('Array of flashcards (aim for 20.'),
+});
+
+type Deck = z.infer<typeof deckSchema>;
+type Card = z.infer<typeof cardSchema>;
+
 export default {
 	async fetch(request, env, ctx): Promise<Response> {
 		const server = new McpServer({
@@ -113,7 +129,60 @@ export default {
 			},
 		);
 
-		// @ts-ignore
+		// list decks
+		registerAppTool(
+			server,
+			'list-decks',
+			{
+				title: 'List Decks',
+				description:
+					'Use this to show the user a list of their decks. Ask the user for their username before using this tool if you dont know it.',
+				inputSchema: {
+					username: z.string().describe("The user's username. Ask for this before using the tool"),
+				},
+				annotations: {
+					readOnlyHint: true,
+				},
+				_meta: {
+					ui: {
+						resourceUri: WIDGET_URI,
+					},
+				},
+			},
+			async ({ username }) => {
+				const decksKey = `user:${username}:decks`;
+
+				const deckIds = await env.FLASHCARDS_KV.get<string[]>(decksKey, 'json');
+
+				if (!deckIds || deckIds.length === 0) {
+					return {
+						content: [{ text: 'You have no decks', type: 'text' }],
+						structuredContent: { decks: [] },
+					};
+				}
+
+				const decks = [];
+
+				for (const deckId of deckIds) {
+					const deck = await env.FLASHCARDS_KV.get<Deck>(`user:${username}:deck:${deckId}`, 'json');
+					if (deck) {
+						const masteredCount = deck.cards.filter((card) => card.status === 'mastered').length;
+						decks.push({ masteredCount, ...deck });
+					}
+				}
+
+				return {
+					content: [
+						{
+							type: 'text',
+							text: `Found a total of  ${decks.length} ${JSON.stringify(decks)}`,
+						},
+					],
+					structuredContent: { decks, username },
+				};
+			},
+		);
+
 		const handler = createMcpHandler(server);
 
 		return handler(request, env, ctx);
