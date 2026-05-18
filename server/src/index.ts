@@ -38,6 +38,8 @@ export default {
 			};
 		});
 
+		await env.FLASHCARDS_KV.put('hello', 'world');
+
 		// TODO: registerAppTool — flashcard 도구들
 
 		// create deck
