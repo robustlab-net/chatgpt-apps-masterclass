@@ -21,6 +21,18 @@ const deckSchema = z.object({
 type Deck = z.infer<typeof deckSchema>;
 type Card = z.infer<typeof cardSchema>;
 
+function normalizeUsername(username: string): string {
+	return username.trim().toLowerCase();
+}
+
+function userDecksKey(username: string): string {
+	return `user:${normalizeUsername(username)}:decks`;
+}
+
+function userDeckKey(username: string, deckId: string): string {
+	return `user:${normalizeUsername(username)}:deck:${deckId}`;
+}
+
 export default {
 	async fetch(request, env, ctx): Promise<Response> {
 		const server = new McpServer({
@@ -67,7 +79,9 @@ export default {
 				description:
 					'학습용 플래시카드 덱을 만듭니다. 앞면(질문), 뒷면(답), 힌트가 있는 카드 20장을 생성하세요. 이 도구를 사용하기 전에 사용자에게 사용자명을 먼저 물어보세요.',
 				inputSchema: {
-					username: z.string().describe('사용자명. 도구를 사용하기 전에 먼저 물어보세요.'),
+					username: z
+						.string()
+						.describe('사용자명. 대소문자는 구분하지 않습니다. 도구를 사용하기 전에 먼저 물어보세요.'),
 					title: z.string().describe("덱 제목. 예: 'React 기초'"),
 					description: z.string().describe('이 덱이 다루는 내용에 대한 간단한 설명.'),
 					cards: z
@@ -105,9 +119,9 @@ export default {
 					createdAt: new Date().toISOString(),
 				};
 
-				const decksKey = `user:${username}:decks`;
+				const decksKey = userDecksKey(username);
 
-				await env.FLASHCARDS_KV.put(`user:${username}:deck:${deck.id}`, JSON.stringify(deck));
+				await env.FLASHCARDS_KV.put(userDeckKey(username, deck.id), JSON.stringify(deck));
 
 				const existingIds = await env.FLASHCARDS_KV.get<string[]>(decksKey, 'json');
 
@@ -136,9 +150,11 @@ export default {
 			{
 				title: 'List Decks',
 				description:
-					'Use this to show the user a list of their decks. Ask the user for their username before using this tool if you dont know it.',
+					'사용자의 플래시카드 덱 목록을 보여줍니다. 사용자명을 모르면 이 도구를 쓰기 전에 먼저 물어보세요. 사용자명은 대소문자를 구분하지 않습니다.',
 				inputSchema: {
-					username: z.string().describe("The user's username. Ask for this before using the tool"),
+					username: z
+						.string()
+						.describe('사용자명. 대소문자는 구분하지 않습니다. 모르면 사용 전에 먼저 물어보세요.'),
 				},
 				annotations: {
 					readOnlyHint: true,
@@ -150,7 +166,7 @@ export default {
 				},
 			},
 			async ({ username }) => {
-				const decksKey = `user:${username}:decks`;
+				const decksKey = userDecksKey(username);
 
 				const deckIds = await env.FLASHCARDS_KV.get<string[]>(decksKey, 'json');
 
@@ -164,7 +180,7 @@ export default {
 				const decks = [];
 
 				for (const deckId of deckIds) {
-					const deck = await env.FLASHCARDS_KV.get<Deck>(`user:${username}:deck:${deckId}`, 'json');
+					const deck = await env.FLASHCARDS_KV.get<Deck>(userDeckKey(username, deckId), 'json');
 					if (deck) {
 						const masteredCount = deck.cards.filter((card) => card.status === 'mastered').length;
 						decks.push({ masteredCount, ...deck });
