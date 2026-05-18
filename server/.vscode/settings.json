@@ -1,5 +1,7 @@
 {
 	"files.associations": {
 		"wrangler.json": "jsonc"
-	}
+	},
+	"git.openRepositoryInParentFolders": "always",
+	"git.repositoryScanMaxDepth": 2
 }
