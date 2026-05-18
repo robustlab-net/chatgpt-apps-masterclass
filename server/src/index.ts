@@ -47,22 +47,22 @@ export default {
 			{
 				title: 'Create Deck',
 				description:
-					'Use this to create a deck of flashcards for studying. Generate 20 cards, with front (question) and back (answer) with a hint as well. Ask the user for their username before using this tool.',
+					'학습용 플래시카드 덱을 만듭니다. 앞면(질문), 뒷면(답), 힌트가 있는 카드 20장을 생성하세요. 이 도구를 사용하기 전에 사용자에게 사용자명을 먼저 물어보세요.',
 				inputSchema: {
-					username: z.string().describe("The user's username. Ask for this before using the tool"),
-					title: z.string().describe("The title of the deck. e.g 'React Fundamentals'"),
-					description: z.string().describe('Brief description of what this deck covers.'),
+					username: z.string().describe('사용자명. 도구를 사용하기 전에 먼저 물어보세요.'),
+					title: z.string().describe("덱 제목. 예: 'React 기초'"),
+					description: z.string().describe('이 덱이 다루는 내용에 대한 간단한 설명.'),
 					cards: z
 						.array(
 							z.object({
-								front: z.string().describe('The question or prompt'),
-								back: z.string().describe('The answer'),
-								hint: z.string().describe('A hint for the card'),
+								front: z.string().describe('질문 또는 앞면 내용'),
+								back: z.string().describe('답 또는 뒷면 내용'),
+								hint: z.string().describe('카드 힌트'),
 							}),
 						)
 						.min(10)
 						.max(20)
-						.describe('Array of flashcards (aim for 20.'),
+						.describe('플래시카드 배열 (20장 권장).'),
 				},
 				annotations: {
 					readOnlyHint: false,
