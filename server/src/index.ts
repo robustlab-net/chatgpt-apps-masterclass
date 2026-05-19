@@ -245,8 +245,107 @@ export default {
 		);
 
 		// mark card (private)
+		registerAppTool(
+			server,
+			'mark-card',
+			{
+				title: 'Mark Card',
+				description: 'This is to change the status of a card.',
+				inputSchema: {
+					username: z.string(),
+					deckId: z.string(),
+					status: z.enum(['learning', 'mastered']),
+					cardId: z.string(),
+				},
+				annotations: {
+					readOnlyHint: false,
+				},
+				_meta: {
+					ui: {
+						visibility: ['app'],
+					},
+				},
+			},
+			async ({ username, deckId, cardId, status }) => {
+				const deckKey = userDeckKey(username, deckId);
+
+				const deck = await env.FLASHCARDS_KV.get<Deck>(deckKey, 'json');
+
+				if (!deck) {
+					return {
+						content: [{ text: 'Error not found', type: 'text' }],
+						isError: true,
+					};
+				}
+
+				const card = (deck.cards as (Card & { id: string })[]).find((c) => c.id === cardId);
+
+				if (card) {
+					card.status = status;
+				}
+
+				await env.FLASHCARDS_KV.put(deckKey, JSON.stringify(deck));
+
+				return {
+					content: [
+						{
+							type: 'text',
+							text: `Card ${cardId} has been updated to ${status} status.`,
+						},
+					],
+					structuredContent: { deck },
+				};
+			},
+		);
 
 		// reset deck (private)
+		registerAppTool(
+			server,
+			'reset-deck',
+			{
+				title: 'Reset Deck',
+				description: 'This is to reset the progress of the deck.',
+				inputSchema: {
+					username: z.string(),
+					deckId: z.string(),
+				},
+				annotations: {
+					destructiveHint: true,
+				},
+				_meta: {
+					ui: {
+						visibility: ['app'],
+					},
+				},
+			},
+			async ({ username, deckId }) => {
+				const deckKey = userDeckKey(username, deckId);
+
+				const deck = await env.FLASHCARDS_KV.get<Deck>(deckKey, 'json');
+
+				if (!deck) {
+					return {
+						content: [{ text: 'Error not found', type: 'text' }],
+						isError: true,
+					};
+				}
+				for (const card of deck.cards) {
+					card.status = 'new';
+				}
+
+				await env.FLASHCARDS_KV.put(deckKey, JSON.stringify(deck));
+
+				return {
+					content: [
+						{
+							type: 'text',
+							text: `Deck progress has been reset.`,
+						},
+					],
+					structuredContent: { deck },
+				};
+			},
+		);
 
 		// delete deck
 		registerAppTool(
