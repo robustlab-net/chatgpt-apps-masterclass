@@ -199,6 +199,108 @@ export default {
 			},
 		);
 
+		// open deck
+		registerAppTool(
+			server,
+			'open-deck',
+			{
+				title: 'Open Deck',
+				description:
+					'사용자가 덱을 학습할 수 있도록 덱을 엽니다. 사용자명과 deck id가 필요합니다. 사용자명을 모르면 사용 전에 먼저 물어보세요. deck id는 list-decks로 확인할 수 있습니다.',
+				inputSchema: {
+					username: usernameSchema.describe(
+						"사용자명. 'zaxrok', 'Zaxrok'처럼 입력해도 소문자 zaxrok으로 조회합니다. 모르면 사용 전에 먼저 물어보세요.",
+					),
+					deckId: z.string().describe('덱 ID. list-decks 도구로 확인할 수 있습니다.'),
+				},
+				annotations: {
+					readOnlyHint: true,
+				},
+				_meta: {
+					ui: {
+						resourceUri: WIDGET_URI,
+					},
+				},
+			},
+			async ({ username, deckId }) => {
+				const deck = await env.FLASHCARDS_KV.get<Deck>(userDeckKey(username, deckId), 'json');
+
+				if (!deck) {
+					return {
+						content: [{ text: 'Deck not found', type: 'text' }],
+						structuredContent: { deck: null, username, deckId },
+					};
+				}
+
+				return {
+					content: [
+						{
+							type: 'text',
+							text: `Opened "${deck.title}" (${deck.cards.length} cards)`,
+						},
+					],
+					structuredContent: { deck, username, deckId },
+				};
+			},
+		);
+
+		// mark card (private)
+
+		// reset deck (private)
+
+		// delete deck
+		registerAppTool(
+			server,
+			'delete-deck',
+			{
+				title: 'Delete Deck',
+				description:
+					'덱을 삭제합니다. 사용자명과 deck id가 필요합니다. 사용자명을 모르면 사용 전에 먼저 물어보세요. deck id는 list-decks로 확인할 수 있습니다.',
+				inputSchema: {
+					username: usernameSchema.describe(
+						"사용자명. 'zaxrok', 'Zaxrok'처럼 입력해도 소문자 zaxrok으로 조회합니다. 모르면 사용 전에 먼저 물어보세요.",
+					),
+					deckId: z.string().describe('삭제할 덱 ID. list-decks 도구로 확인할 수 있습니다.'),
+				},
+				annotations: {
+					destructiveHint: true,
+				},
+				_meta: {},
+			},
+			async ({ username, deckId }) => {
+				const deckKey = userDeckKey(username, deckId);
+
+				const deck = await env.FLASHCARDS_KV.get<Deck>(deckKey, 'json');
+
+				if (!deck) {
+					return {
+						content: [{ text: 'Deck not found', type: 'text' }],
+					};
+				}
+
+				await env.FLASHCARDS_KV.delete(deckKey);
+
+				const decksKey = userDecksKey(username);
+				const deckIds = await env.FLASHCARDS_KV.get<string[]>(decksKey, 'json');
+				if (deckIds) {
+					await env.FLASHCARDS_KV.put(
+						decksKey,
+						JSON.stringify(deckIds.filter((id) => id !== deckId)),
+					);
+				}
+
+				return {
+					content: [
+						{
+							type: 'text',
+							text: `Deleted "${deck.title}"`,
+						},
+					],
+				};
+			},
+		);
+
+
 		const handler = createMcpHandler(server);
 
 		return handler(request, env, ctx);
