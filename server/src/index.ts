@@ -136,7 +136,7 @@ export default {
 					content: [
 						{
 							type: 'text',
-							text: `Created a ${title} deck with ${cards.length} flashcards`,
+							text: `Created a ${title} deck with ${cards.length} flashcards and ${JSON.stringify(deck)}`,
 						},
 					],
 					structuredContent: { deck, username },
@@ -263,7 +263,7 @@ export default {
 				},
 				_meta: {
 					ui: {
-						visibility: ['app'],
+						visibility: ['app'],  // 사용자만 호출 가능하도록 설정
 					},
 				},
 			},
