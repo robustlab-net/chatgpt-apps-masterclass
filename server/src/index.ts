@@ -108,9 +108,9 @@ export default {
 			},
 			async ({ title, description, cards, username }) => {
 				const cardsWithIds = cards.map((card, index) => ({
+          ...card,
 					id: `card-${Date.now()}-${index}`,
 					status: 'new',
-					...card,
 				}));
 				const deck = {
 					id: `deck-${Date.now()}`,
@@ -237,7 +237,7 @@ export default {
 					content: [
 						{
 							type: 'text',
-							text: `Opened "${deck.title}" (${deck.cards.length} cards)`,
+							text: `Studying ${deck.title} with ${deck.description} opened. ${JSON.stringify(deck.cards)}`,
 						},
 					],
 					structuredContent: { deck, username, deckId },
