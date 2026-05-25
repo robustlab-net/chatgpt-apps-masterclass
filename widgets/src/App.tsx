@@ -7,6 +7,7 @@ import { DeckList } from "./components/deck-list.tsx";
 
 function App() {
   const [toolOutput, setToolOutput] = useState<ToolOutput | null>(null);
+  const [viewUUID, setViewUUID] = useState<string | null>(null);
 
   const { app, error } = useApp({
     appInfo: { name: "플래시카드", version: "1.0" },
@@ -15,6 +16,9 @@ function App() {
       app.ontoolresult = (result) => {
         if (result.structuredContent) {
           setToolOutput(result.structuredContent as unknown as ToolOutput);
+        }
+        if (result._meta) {
+          setViewUUID(result._meta.viewUUID as unknown as string);
         }
       };
     },
@@ -39,7 +43,12 @@ function App() {
       <FlashcardStudy
         deck={toolOutput.deck}
         app={app}
-        username={"username" in toolOutput ? toolOutput.username : "anonymous"}
+        viewUUID={viewUUID}
+        username={
+          "username" in toolOutput
+            ? (toolOutput.username as string)
+            : "anonymous"
+        }
       />
     );
   }
