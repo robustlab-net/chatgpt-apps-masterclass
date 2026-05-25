@@ -76,7 +76,7 @@ export function useStudySession({
           content: [
             {
               type: "text",
-              text: `Please explain this flashcard in more detail. Question ${currentCard.front}\nAnswer ${currentCard.back}`,
+              text: `이 플래시카드를 더 자세히 설명해 주세요.\n문제: ${currentCard.front}\n정답: ${currentCard.back}`,
             },
           ],
         });

@@ -9,7 +9,7 @@ function App() {
   const [toolOutput, setToolOutput] = useState<ToolOutput | null>(null);
 
   const { app, error } = useApp({
-    appInfo: { name: "Flashcards Client", version: "1.0" },
+    appInfo: { name: "플래시카드", version: "1.0" },
     capabilities: {},
     onAppCreated: (app) => {
       app.ontoolresult = (result) => {
@@ -25,7 +25,7 @@ function App() {
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-50 text-red-500">
-        Error: {error.message}
+        오류: {error.message}
       </div>
     );
   }

@@ -30,7 +30,7 @@ export function FlashcardStudy({ deck, app, username }: FlashcardStudyProps) {
   if (!currentCard) {
     return (
       <div className="p-6 text-center">
-        <p className="text-secondary">No cards in this deck</p>
+        <p className="text-secondary">이 덱에 카드가 없습니다</p>
       </div>
     );
   }
@@ -49,9 +49,9 @@ export function FlashcardStudy({ deck, app, username }: FlashcardStudyProps) {
       <div className="flex flex-col gap-2">
         <div className="flex justify-between text-sm text-secondary">
           <span>
-            Card {currentIndex + 1} of {cards.length}
+            {currentIndex + 1} / {cards.length}장
           </span>
-          <span>{masteredCount} mastered</span>
+          <span>완료 {masteredCount}장</span>
         </div>
         <div
           className="h-2 rounded-full overflow-hidden"
@@ -84,7 +84,7 @@ export function FlashcardStudy({ deck, app, username }: FlashcardStudyProps) {
           variant="ghost"
           onClick={goPrev}
           disabled={currentIndex === 0}
-          aria-label="Previous card"
+          aria-label="이전 카드"
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
@@ -99,7 +99,7 @@ export function FlashcardStudy({ deck, app, username }: FlashcardStudyProps) {
               loading={loading === "learning"}
               disabled={loading === "mastered"}
             >
-              Still Learning
+              아직 어려움
             </Button>
             <Button
               size="sm"
@@ -109,7 +109,7 @@ export function FlashcardStudy({ deck, app, username }: FlashcardStudyProps) {
               loading={loading === "mastered"}
               disabled={loading === "learning"}
             >
-              Got It!
+              외웠어요
             </Button>
           </>
         ) : (
@@ -119,7 +119,7 @@ export function FlashcardStudy({ deck, app, username }: FlashcardStudyProps) {
             variant="solid"
             onClick={toggleFlip}
           >
-            Reveal Answer
+            정답 보기
           </Button>
         )}
 
@@ -129,7 +129,7 @@ export function FlashcardStudy({ deck, app, username }: FlashcardStudyProps) {
           variant="ghost"
           onClick={goNext}
           disabled={currentIndex === cards.length - 1}
-          aria-label="Next card"
+          aria-label="다음 카드"
         >
           <ArrowRight className="h-4 w-4" />
         </Button>
@@ -143,7 +143,7 @@ export function FlashcardStudy({ deck, app, username }: FlashcardStudyProps) {
           onClick={explainCard}
           loading={loading === "explaining"}
         >
-          Explain This
+          자세히 설명
         </Button>
         <Button
           size="sm"
@@ -152,7 +152,7 @@ export function FlashcardStudy({ deck, app, username }: FlashcardStudyProps) {
           onClick={resetProgress}
           loading={loading === "resetting"}
         >
-          Reset Progress
+          진행 초기화
         </Button>
       </div>
     </div>

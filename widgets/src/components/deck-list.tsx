@@ -8,9 +8,9 @@ export function DeckList({ decks }: DeckListProps) {
   if (decks.length === 0) {
     return (
       <div className="p-6 text-center bg-surface">
-        <p className="text-secondary mb-2">No flashcard decks yet</p>
+        <p className="text-secondary mb-2">아직 플래시카드 덱이 없습니다</p>
         <p className="text-sm text-tertiary">
-          Ask the AI to create a flashcard deck on any topic!
+          AI에게 원하는 주제의 플래시카드 덱을 만들어 달라고 요청해 보세요.
         </p>
       </div>
     );
@@ -32,8 +32,8 @@ export function DeckList({ decks }: DeckListProps) {
               {deck.description}
             </p>
             <div className="flex items-center gap-3 mt-2 text-sm text-tertiary">
-              <span>{deck.cards.length} cards</span>
-              <span>{deck.masteredCount} mastered</span>
+              <span>{deck.cards.length}장</span>
+              <span>완료 {deck.masteredCount}장</span>
             </div>
             <div
               className="mt-2 h-2 rounded-full overflow-hidden"

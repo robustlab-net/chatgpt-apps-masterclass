@@ -20,9 +20,9 @@ export function FlashcardCard({
   };
 
   const statusLabels = {
-    new: "New",
-    learning: "Learning",
-    mastered: "Mastered",
+    new: "새 카드",
+    learning: "학습 중",
+    mastered: "완료",
   };
 
   return (
@@ -47,7 +47,7 @@ export function FlashcardCard({
           <div className="flex flex-col h-full">
             <div className="flex justify-between items-start mb-4">
               <span className="text-xs text-tertiary uppercase tracking-wide">
-                Question
+                문제
               </span>
               <span
                 className={`text-xs px-2 py-1 rounded-full ${statusStyles[status]}`}
@@ -61,12 +61,12 @@ export function FlashcardCard({
             {card.hint && (
               <div className="mt-4 pt-4 border-t border-primary">
                 <p className="text-sm text-tertiary text-center">
-                  Hint: {card.hint}
+                  힌트: {card.hint}
                 </p>
               </div>
             )}
             <p className="text-xs text-tertiary text-center mt-4">
-              Tap to reveal answer
+              탭하여 정답 보기
             </p>
           </div>
         </div>
@@ -79,7 +79,7 @@ export function FlashcardCard({
           <div className="flex flex-col h-full">
             <div className="flex justify-between items-start mb-4">
               <span className="text-xs text-tertiary uppercase tracking-wide">
-                Answer
+                정답
               </span>
               <span
                 className={`text-xs px-2 py-1 rounded-full ${statusStyles[status]}`}
@@ -91,7 +91,7 @@ export function FlashcardCard({
               <p className="text-2xl text-center font-medium">{card.back}</p>
             </div>
             <p className="text-xs text-tertiary text-center mt-4">
-              Tap to see question
+              탭하여 문제 보기
             </p>
           </div>
         </div>
