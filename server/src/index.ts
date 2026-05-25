@@ -6,16 +6,17 @@ import z from 'zod';
 const WIDGET_URI = 'ui://flashcards-widget';
 
 const cardSchema = z.object({
-	front: z.string().describe('The question or prompt'),
-	back: z.string().describe('The answer'),
-	hint: z.string().describe('A hint for the card'),
+  id: z.string().readonly(),
+	front: z.string().describe('질문 또는 앞면 내용'),
+	back: z.string().describe('답 또는 뒷면 내용'),
+	hint: z.string().describe('카드 힌트'),
 	status: z.enum(['new', 'learning', 'mastered']).readonly().default('new'),
 });
 
 const deckSchema = z.object({
-	title: z.string().describe("The title of the deck. e.g 'React Fundamentals'"),
-	description: z.string().describe('Brief description of what this deck covers.'),
-	cards: z.array(cardSchema).min(10).max(20).describe('Array of flashcards (aim for 20.'),
+	title: z.string().describe("덱 제목. 예: 'React 기초'"),
+	description: z.string().describe('이 덱이 다루는 내용에 대한 간단한 설명.'),
+	cards: z.array(cardSchema).min(10).max(20).describe('플래시카드 배열 (20장 권장).'),
 });
 
 type Deck = z.infer<typeof deckSchema>;
@@ -40,7 +41,7 @@ export default {
 			version: '1.0',
 		});
 
-		registerAppResource(server, 'Flashcard Widget', WIDGET_URI, { description: 'Flashcard Widget' }, async () => {
+		registerAppResource(server, 'Flashcard Widget', WIDGET_URI, { description: '플래시카드 위젯' }, async () => {
 			const html = await env.ASSETS.fetch(new URL('http://hello/index.html'));
 			return {
 				contents: [
@@ -250,12 +251,12 @@ export default {
 			'mark-card',
 			{
 				title: 'Mark Card',
-				description: 'This is to change the status of a card.',
+				description: '카드의 학습 상태를 변경합니다. learning(학습 중) 또는 mastered(완료)로 표시합니다.',
 				inputSchema: {
-					username: z.string(),
-					deckId: z.string(),
-					status: z.enum(['learning', 'mastered']),
-					cardId: z.string(),
+					username: usernameSchema.describe('사용자명.'),
+					deckId: z.string().describe('덱 ID.'),
+					status: z.enum(['learning', 'mastered']).describe('카드 상태. learning 또는 mastered.'),
+					cardId: z.string().describe('상태를 변경할 카드 ID.'),
 				},
 				annotations: {
 					readOnlyHint: false,
@@ -304,17 +305,17 @@ export default {
 			'reset-deck',
 			{
 				title: 'Reset Deck',
-				description: 'This is to reset the progress of the deck.',
+				description: '덱의 학습 진행도를 초기화합니다. 모든 카드 상태를 new로 되돌립니다.',
 				inputSchema: {
-					username: z.string(),
-					deckId: z.string(),
+					username: usernameSchema.describe('사용자명.'),
+					deckId: z.string().describe('초기화할 덱 ID.'),
 				},
 				annotations: {
 					destructiveHint: true,
 				},
 				_meta: {
 					ui: {
-						visibility: ['app'],
+						visibility: ['app'],  // 사용자만 호출 가능하도록 설정
 					},
 				},
 			},
